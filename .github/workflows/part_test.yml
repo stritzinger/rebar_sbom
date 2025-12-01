@@ -1,0 +1,101 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+
+on:
+  workflow_call:
+    inputs:
+      otp-version:
+        description: "Latest supported OTP version to test"
+        required: false
+        default: "28.0"
+        type: string
+      rebar3-version:
+        description: "Rebar3 version to install"
+        required: false
+        default: "3.25.1"
+        type: string
+
+name: "Test"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    name: Check Formatting
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/setup-runtime-env
+
+      - run: rebar3 fmt --check
+
+  ct:
+    name: rebar3 CT (${{ matrix.name }})
+
+    runs-on: ${{ matrix.runs-on }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Lowest Supported
+          - otp: "27.0"
+            name: "lowest"
+            runs-on: ubuntu-latest
+            unstable: false
+          # Latest Supported
+          - otp: "${{ inputs.otp-version }}"
+            name: "latest"
+            runs-on: ubuntu-latest
+            enable_coverage_export: "true"
+            unstable: false
+          # Test Main
+          - otp: "${{ inputs.otp-version }}"
+            name: "main"
+            runs-on: ubuntu-latest
+            unstable: true
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/setup-runtime-env
+        with:
+          otp-version: ${{ matrix.otp }}
+          rebar3-version: ${{ inputs.rebar3-version }}
+
+      - run: rebar3 ct
+        continue-on-error: ${{ matrix.unstable }}
+
+  dialyzer:
+    name: "Check Dialyzer"
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/setup-runtime-env
+
+      - run: rebar3 dialyzer
