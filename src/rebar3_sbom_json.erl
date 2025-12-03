@@ -1,7 +1,6 @@
 %% SPDX-License-Identifier: BSD-3-Clause
-%% SPDX-FileCopyrightText: 2024 Máté Lajkó
-%% SPDX-FileCopyrightText: 2025 Stritzinger GmbH
 %% SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+%% SPDX-FileCopyrightText: 2024-2025 Stritzinger GmbH
 
 -module(rebar3_sbom_json).
 
