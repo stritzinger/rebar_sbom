@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+
+on:
+  push:
+    branches:
+      - "sosef/ort-testing"
+  workflow_dispatch:
+    inputs:
+      ort-image:
+        description: "Docker image to use for ORT (leave empty to build from sosef/m7)"
+        required: false
+        default: ""
+      artifact-name:
+        description: "Name for the uploaded artifact"
+        required: false
+        default: "ort-analyzer-result"
+
+name: "ORT Analyzer"
+
+permissions:
+  contents: read
+
+jobs:
+  ort_analyzer:
+    name: "ORT Analyzer"
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository code
+      # Downloads the repository source code to the GitHub Actions runner,
+      # making it available for analysis by ORT.
+      - name: "Checkout repository"
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Docker Buildx
+      # Configures Docker Buildx, which provides enhanced build capabilities
+      # and is required for building Docker images in GitHub Actions.
+      # This is necessary when building the ORT image from source.
+      - name: "Set up Docker Buildx"
+        uses: docker/setup-buildx-action@v3
+
+      # Step 3: Run the ORT Analyzer composite action
+      # Executes the reusable composite action that:
+      # - Builds or pulls the ORT Docker image (from sosef/m7 branch by default)
+      # - Creates ORT configuration to exclude build artifacts and test code
+      # - Runs ORT analyzer to detect and resolve Rebar3 dependencies
+      # - Uploads the results as a GitHub Actions artifact
+      # The ort-image and artifact-name can be customized via workflow_dispatch inputs.
+      - name: "Run ORT Analyzer"
+        uses: ./.github/actions/ort-analyzer-rebar3
+        with:
+          ort-image: ${{ github.event.inputs.ort-image || '' }}
+          ort-branch: "sosef/m7"
+          output-dir: "ort-results"
+          artifact-name: ${{ github.event.inputs.artifact-name || 'ort-analyzer-result' }}

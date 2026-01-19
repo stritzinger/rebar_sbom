@@ -1,0 +1,108 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
+
+name: "Run ORT Analyzer on Rebar3 Project"
+description: "Runs OSS Review Toolkit Analyzer on a rebar3 project using Docker"
+
+inputs:
+  ort-image:
+    description: "Docker image name for ORT (leave empty to build from sosef/m7 branch)"
+    required: false
+    default: ""
+  ort-repo:
+    description: "ORT repository URL"
+    required: false
+    default: "https://github.com/erlef/ort.git"
+  ort-branch:
+    description: "ORT branch to use"
+    required: false
+    default: "sosef/m7"
+  output-dir:
+    description: "Directory to write ORT results"
+    required: false
+    default: "ort-results"
+  artifact-name:
+    description: "Name for the uploaded artifact"
+    required: false
+    default: "ort-analyzer-result"
+
+runs:
+  using: "composite"
+  steps:
+    # Step 1: Prepare the ORT Docker image
+    # If ort-image input is provided, pull the specified image from the registry.
+    # Otherwise, clone the ORT repository from the specified branch and build
+    # the Docker image locally. The image name is stored in GITHUB_OUTPUT
+    # for use in subsequent steps.
+    - name: "Build or Pull ORT Docker image"
+      id: ort-image
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.ort-image }}" ]; then
+          echo "Building ORT from ${{ inputs.ort-branch }} branch..."
+          git clone --depth 1 --branch ${{ inputs.ort-branch }} ${{ inputs.ort-repo }} ort-src
+          cd ort-src
+          docker build --target run -t ort-rebar3:local .
+          cd ..
+          rm -rf ort-src
+          echo "image=ort-rebar3:local" >> $GITHUB_OUTPUT
+        else
+          echo "Pulling ORT image: ${{ inputs.ort-image }}"
+          docker pull ${{ inputs.ort-image }}
+          echo "image=${{ inputs.ort-image }}" >> $GITHUB_OUTPUT
+        fi
+
+    # Step 2: Create repository-specific ORT configuration file
+    # Generates a .ort.yml file that configures ORT to:
+    # - Skip analysis of excluded paths entirely (skip_excluded: true)
+    # - Exclude build artifacts in _build/** directories
+    # - Exclude test code in test/** directories
+    # This prevents ORT from analyzing irrelevant files and reduces processing time.
+    - name: "Create ORT configuration"
+      shell: bash
+      run: |
+        cat > .ort.yml <<EOF
+        analyzer:
+          skip_excluded: true
+        excludes:
+          paths:
+            - pattern: "_build/**"
+              reason: "BUILD_TOOL_OF"
+              comment: "Build artifacts"
+            - pattern: "test/**"
+              reason: "TEST_OF"
+              comment: "Test code"
+        EOF
+
+    # Step 3: Execute ORT analyzer
+    # Runs the ORT analyzer inside a Docker container to:
+    # - Detect Rebar3 projects (rebar.config files)
+    # - Resolve dependencies using bombom (via the Rebar3 plugin)
+    # - Generate analyzer results in JSON format
+    # The workspace is mounted as a volume, and results are written to the
+    # specified output directory. Existing results are removed first to allow overwrite.
+    - name: "Run ORT Analyzer"
+      shell: bash
+      run: |
+        # Remove existing results to allow overwrite
+        rm -rf ${{ inputs.output-dir }}
+        mkdir -p ${{ inputs.output-dir }}
+        
+        docker run --rm \
+          -v "$PWD":/workspace \
+          -w /workspace \
+          ${{ steps.ort-image.outputs.image }} \
+          analyze \
+          --input-dir /workspace \
+          --output-dir /workspace/${{ inputs.output-dir }} \
+          --output-formats json
+
+    # Step 4: Upload analysis results as GitHub Actions artifact
+    # Makes the analyzer results available for download from the GitHub Actions
+    # workflow run. The artifact is retained for 30 days.
+    - name: "Upload ORT results"
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.output-dir }}/
+        retention-days: 30
