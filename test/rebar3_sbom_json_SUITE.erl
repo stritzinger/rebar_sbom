@@ -51,9 +51,6 @@
 -export([checkout_app_dependency_test/1]).
 -export([git_root_app_source_test/1]).
 
-% Utils imports
--import(rebar3_sbom_test_utils, [run_cmd/1]).
-
 % Includes
 -include_lib("common_test/include/ct.hrl").
 -include_lib("stdlib/include/assert.hrl").
@@ -219,10 +216,7 @@ init_per_group(basic_app, Config) ->
     {ok, FinalState} = rebar3:run(State, Cmd),
     {ok, File} = file:read_file(SBoMPath),
     SBoMJSON = json:decode(File),
-    AllDeps = lists:map(
-        fun(Dep) -> atom_to_binary(Dep) end,
-        rebar_state:get(FinalState, deps)
-    ),
+    AllDeps = lists:map(fun erlang:atom_to_binary/1, rebar_state:get(FinalState, deps)),
     [
         {sbom_path, SBoMPath},
         {sbom_json, SBoMJSON},
@@ -584,12 +578,7 @@ manufacturer_test(Config) ->
 %--- components group ---
 required_component_fields_test(Config) ->
     #{<<"components">> := Components} = ?config(sbom_json, Config),
-    lists:foreach(
-        fun(Component) ->
-            check_component_constraints(Component)
-        end,
-        Components
-    ).
+    lists:foreach(fun check_component_constraints/1, Components).
 
 all_deps_present_test(Config) ->
     AllDeps = ?config(all_deps, Config),
