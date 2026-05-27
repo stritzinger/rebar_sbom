@@ -5,6 +5,7 @@
 
 -export([get_app_dir/2]).
 -export([init_rebar_state/2]).
+-export([init_rebar_state_from_dir/3]).
 -export([build_dir_path/2]).
 
 %--- Includes ------------------------------------------------------------------
@@ -21,8 +22,12 @@ get_app_dir(DataDir, AppName) ->
 
 init_rebar_state(Config, AppName) ->
     DataDir = ?config(data_dir, Config),
-    PrivDir = ?config(priv_dir, Config),
     AppDir = get_app_dir(DataDir, AppName),
+    init_rebar_state_from_dir(Config, AppDir, AppName).
+
+init_rebar_state_from_dir(Config, AppDir, AppName) ->
+    DataDir = ?config(data_dir, Config),
+    PrivDir = ?config(priv_dir, Config),
     BaseDir = build_dir_path(PrivDir, AppName),
     State = rebar_state:new([
         {base_dir, BaseDir},

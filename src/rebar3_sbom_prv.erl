@@ -60,7 +60,7 @@ do(State) ->
     Force = proplists:get_value(force, Args),
     IsStrictVersion = proplists:get_value(strict_version, Args),
     [App0 | _] = rebar_state:project_apps(State),
-    App = rebar_app_info:source(App0, root_app),
+    App = rebar_app_info:source(App0, find_root_app_source(State)),
     PluginDeps = rebar_state:all_plugin_deps(State),
     {value, Plugin} = lists:search(
         fun(Plugin) ->
@@ -415,3 +415,61 @@ hash(AppInfo, BaseDir) ->
 tar_path(BaseDir, Name, Version) ->
     TarFilename = io_lib:format("~s-~s.tar.gz", [Name, Version]),
     filename:join([BaseDir, "rel", Name, TarFilename]).
+
+find_root_app_source(State) ->
+    RootDir = rebar_dir:root_dir(State),
+    case root_app_is_hex_package(RootDir) of
+        true ->
+            root_app;
+        false ->
+            find_root_app_git_source(RootDir)
+    end.
+
+root_app_is_hex_package(RootDir) ->
+    RebarConfig =
+        case rebar_config:consult(RootDir) of
+            Terms when is_list(Terms) -> Terms;
+            _ -> []
+        end,
+    proplists:is_defined(hex, RebarConfig).
+
+find_root_app_git_source(RootDir) ->
+    NormalizedRootDir = normalize_dir(RootDir),
+    case
+        {
+            run_git_command(RootDir, ["rev-parse", "--show-toplevel"]),
+            run_git_command(RootDir, ["config", "--get", "remote.origin.url"]),
+            run_git_command(RootDir, ["rev-parse", "HEAD"])
+        }
+    of
+        {{ok, RepoRoot}, {ok, Url}, {ok, Ref}} ->
+            case normalize_dir(RepoRoot) =:= NormalizedRootDir of
+                true -> {git, Url, {ref, Ref}};
+                false -> root_app
+            end;
+        _ ->
+            root_app
+    end.
+
+run_git_command(RootDir, Args) ->
+    Command = "git " ++ string:join(Args, " "),
+    case
+        rebar_utils:sh(
+            Command,
+            [{cd, RootDir}, {use_stdout, false}, {return_on_error, true}]
+        )
+    of
+        {ok, Output} ->
+            case string:trim(Output) of
+                [] -> {error, empty_output};
+                TrimmedOutput -> {ok, TrimmedOutput}
+            end;
+        {error, {Status, _Output}} ->
+            {error, Status}
+    end.
+
+normalize_dir(Path) ->
+    case filename:basename(Path) of
+        "." -> normalize_dir(filename:dirname(Path));
+        _ -> filename:absname(Path)
+    end.
