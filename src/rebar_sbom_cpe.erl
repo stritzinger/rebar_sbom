@@ -1,12 +1,12 @@
 %% SPDX-License-Identifier: BSD-3-Clause
 %% SPDX-FileCopyrightText: 2025 Stritzinger GmbH
 
--module(rebar3_sbom_cpe).
+-module(rebar_sbom_cpe).
 
 -export([cpe/3]).
 
 % Includes
--include("rebar3_sbom.hrl").
+-include("rebar_sbom.hrl").
 
 %--- Macros --------------------------------------------------------------------
 -define(CPE_PREFIX, <<"cpe:", ?CPE_VERSION/binary>>).

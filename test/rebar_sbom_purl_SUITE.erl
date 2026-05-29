@@ -1,7 +1,7 @@
 %% SPDX-License-Identifier: BSD-3-Clause
 %% SPDX-FileCopyrightText: 2025 Stritzinger GmbH
 
--module(rebar3_sbom_purl_SUITE).
+-module(rebar_sbom_purl_SUITE).
 
 % CT Exports
 -export([all/0]).
@@ -36,11 +36,11 @@ all() ->
 %--- Test cases ----------------------------------------------------------------
 
 hex_purl_test(_) ->
-    Purl = rebar3_sbom_purl:hex("Rebar3_SBOM", "1.2.3"),
-    ?assertEqual(<<"pkg:hex/rebar3_sbom@1.2.3">>, Purl).
+    Purl = rebar_sbom_purl:hex("Rebar3_SBOM", "1.2.3"),
+    ?assertEqual(<<"pkg:hex/rebar_sbom@1.2.3">>, Purl).
 
 github_purl_test(_) ->
-    Purl = rebar3_sbom_purl:github("ExampleOrg/ExampleRepo", "1.0.0"),
+    Purl = rebar_sbom_purl:github("ExampleOrg/ExampleRepo", "1.0.0"),
     ?assertEqual(<<"pkg:github/exampleorg/examplerepo@1.0.0">>, Purl).
 
 git_github_variants_test(_) ->
@@ -51,14 +51,14 @@ git_github_variants_test(_) ->
     ],
     lists:foreach(
         fun(Url) ->
-            Purl = rebar3_sbom_purl:git("example_app", Url, "3.0.0"),
+            Purl = rebar_sbom_purl:git("example_app", Url, "3.0.0"),
             ?assertEqual(<<"pkg:github/exampleorg/examplerepo@3.0.0">>, Purl)
         end,
         Urls
     ).
 
 bitbucket_purl_test(_) ->
-    Purl = rebar3_sbom_purl:bitbucket("ExampleOrg/ExampleRepo", "2.0.0"),
+    Purl = rebar_sbom_purl:bitbucket("ExampleOrg/ExampleRepo", "2.0.0"),
     ?assertEqual(<<"pkg:bitbucket/exampleorg/examplerepo@2.0.0">>, Purl).
 
 git_bitbucket_variants_test(_) ->
@@ -69,7 +69,7 @@ git_bitbucket_variants_test(_) ->
     ],
     lists:foreach(
         fun(Url) ->
-            Purl = rebar3_sbom_purl:git("example_app", Url, "4.0.0"),
+            Purl = rebar_sbom_purl:git("example_app", Url, "4.0.0"),
             ?assertEqual(<<"pkg:bitbucket/exampleorg/examplerepo@4.0.0">>, Purl)
         end,
         Urls
@@ -78,7 +78,7 @@ git_bitbucket_variants_test(_) ->
 git_unsupported_host_test(_) ->
     ?assertEqual(
         undefined,
-        rebar3_sbom_purl:git(
+        rebar_sbom_purl:git(
             "example_app",
             "git@gitlab.com:ExampleOrg/ExampleRepo.git",
             "5.0.0"
@@ -86,9 +86,9 @@ git_unsupported_host_test(_) ->
     ).
 
 local_otp_app_purl_test(_) ->
-    Purl = rebar3_sbom_purl:local_otp_app("Local-App", "0.9.0"),
+    Purl = rebar_sbom_purl:local_otp_app("Local-App", "0.9.0"),
     ?assertEqual(<<"pkg:otp/local-app@0.9.0">>, Purl).
 
 local_purl_test(_) ->
-    Purl = rebar3_sbom_purl:local("Local-App", "0.9.0"),
+    Purl = rebar_sbom_purl:local("Local-App", "0.9.0"),
     ?assertEqual(<<"pkg:generic/local-app@0.9.0">>, Purl).

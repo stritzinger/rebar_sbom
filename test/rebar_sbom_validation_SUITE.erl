@@ -1,7 +1,7 @@
 %% SPDX-License-Identifier: BSD-3-Clause
 %% SPDX-FileCopyrightText: 2025 Stritzinger GmbH
 
--module(rebar3_sbom_validation_SUITE).
+-module(rebar_sbom_validation_SUITE).
 
 % CT Exports
 -export([all/0]).
@@ -30,21 +30,21 @@ all() ->
     ].
 
 init_per_suite(Config) ->
-    application:load(rebar3_sbom),
+    application:load(rebar_sbom),
     [{cyclonedx_cli_path, cyclonedx_cli_path()} | Config].
 
 end_per_suite(Config) ->
     Config.
 
 init_per_testcase(validate_json_test, Config) ->
-    State = rebar3_sbom_test_utils:init_rebar_state(Config, "basic_app"),
+    State = rebar_sbom_test_utils:init_rebar_state(Config, "basic_app"),
     PrivDir = ?config(priv_dir, Config),
     SBoMPath = filename:join(PrivDir, ?VALIDATION_SBOM_JSON),
     Cmd = ["sbom", "-F", "json", "-o", SBoMPath, "-V", "false", "-f", "-a", "Jane Doe"],
     {ok, _FinalState} = rebar3:run(State, Cmd),
     [{sbom_path, SBoMPath} | Config];
 init_per_testcase(validate_xml_test, Config) ->
-    State = rebar3_sbom_test_utils:init_rebar_state(Config, "basic_app"),
+    State = rebar_sbom_test_utils:init_rebar_state(Config, "basic_app"),
     PrivDir = ?config(priv_dir, Config),
     SBoMPath = filename:join(PrivDir, ?VALIDATION_SBOM_XML),
     Cmd = ["sbom", "-F", "xml", "-o", SBoMPath, "-V", "false", "-f", "-a", "Jane Doe"],

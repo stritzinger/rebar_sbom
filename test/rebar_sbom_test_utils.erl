@@ -1,7 +1,7 @@
 %% SPDX-License-Identifier: BSD-3-Clause
 %% SPDX-FileCopyrightText: 2025-2026 Stritzinger GmbH
 
--module(rebar3_sbom_test_utils).
+-module(rebar_sbom_test_utils).
 
 -export([get_app_dir/2]).
 -export([init_rebar_state/2]).
@@ -35,7 +35,7 @@ init_rebar_state_from_dir(Config, AppDir, AppName) ->
     ]),
     RebarConfig = rebar_config:consult(AppDir),
     State2 = rebar_state:new(State, RebarConfig, AppDir),
-    {ok, State3} = rebar3_sbom_prv:init(State2),
+    {ok, State3} = rebar_sbom_prv:init(State2),
     add_fake_plugin_dep(State3, DataDir).
 
 build_dir_path(PrivDir, AppName) ->

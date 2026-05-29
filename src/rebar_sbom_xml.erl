@@ -1,11 +1,11 @@
 %% SPDX-License-Identifier: BSD-3-Clause
 %% SPDX-FileCopyrightText: 2024 Stritzinger GmbH
 
--module(rebar3_sbom_xml).
+-module(rebar_sbom_xml).
 
 -export([encode/1, decode/1]).
 
--include("rebar3_sbom.hrl").
+-include("rebar_sbom.hrl").
 -include_lib("xmerl/include/xmerl.hrl").
 
 -define(XMLNS, "http://cyclonedx.org/schema/bom/1.6").
