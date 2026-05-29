@@ -1,5 +1,5 @@
 %% SPDX-License-Identifier: BSD-3-Clause
-%% SPDX-FileCopyrightText: 2025 Stritzinger GmbH
+%% SPDX-FileCopyrightText: 2025-2026 Stritzinger GmbH
 
 -module(rebar3_sbom_json_SUITE).
 
@@ -49,6 +49,7 @@
 -export([metadata_component_empty_links_cpe_test/1]).
 -export([external_references_fallback_test/1]).
 -export([checkout_app_dependency_test/1]).
+-export([git_root_app_source_test/1]).
 
 % Includes
 -include_lib("common_test/include/ct.hrl").
@@ -189,7 +190,8 @@ groups() ->
             no_sbom_licenses_test,
             metadata_component_empty_links_cpe_test,
             external_references_fallback_test,
-            checkout_app_dependency_test
+            checkout_app_dependency_test,
+            git_root_app_source_test
         ]}
     ].
 
@@ -214,10 +216,7 @@ init_per_group(basic_app, Config) ->
     {ok, FinalState} = rebar3:run(State, Cmd),
     {ok, File} = file:read_file(SBoMPath),
     SBoMJSON = json:decode(File),
-    AllDeps = lists:map(
-        fun(Dep) -> atom_to_binary(Dep) end,
-        rebar_state:get(FinalState, deps)
-    ),
+    AllDeps = lists:map(fun erlang:atom_to_binary/1, rebar_state:get(FinalState, deps)),
     [
         {sbom_path, SBoMPath},
         {sbom_json, SBoMJSON},
@@ -337,11 +336,31 @@ init_per_testcase(strict_version_test, Config) ->
     {ok, File} = file:read_file(SBoMPath),
     NewSBoMJSON = json:decode(File),
     [{sbom_json, NewSBoMJSON} | Config];
+init_per_testcase(git_root_app_source_test, Config) ->
+    DataDir = ?config(data_dir, Config),
+    PrivDir = ?config(priv_dir, Config),
+    SrcDir = rebar3_sbom_test_utils:get_app_dir(DataDir, "local_app"),
+    AppDir = filename:join(PrivDir, "git_root_app"),
+    ok = maybe_delete_dir(AppDir),
+    {ok, _} = rebar_utils:sh(["cp -r ", SrcDir, " ", AppDir], []),
+    init_git_repo(AppDir, "https://github.com/ExampleOrg/local_app.git"),
+    State = rebar3_sbom_test_utils:init_rebar_state_from_dir(
+        Config, AppDir, "git_root_app"
+    ),
+    SBoMPath = filename:join(PrivDir, "git_root_app_sbom.json"),
+    Cmd = ["sbom", "-F", "json", "-o", SBoMPath, "-V", "false", "-f"],
+    {ok, _FinalState} = rebar3:run(State, Cmd),
+    {ok, File} = file:read_file(SBoMPath),
+    NewSBoMJSON = json:decode(File),
+    [{sbom_json, NewSBoMJSON}, {git_root_app_dir, AppDir}, {sbom_path, SBoMPath} | Config];
 init_per_testcase(_, Config) ->
     Config.
 
 end_per_testcase(github_actor_test, _) ->
     os:unsetenv("GITHUB_ACTOR");
+end_per_testcase(git_root_app_source_test, Config) ->
+    ok = file:del_dir_r(?config(git_root_app_dir, Config)),
+    ok = file:delete(?config(sbom_path, Config));
 end_per_testcase(_, _Config) ->
     ok.
 
@@ -559,12 +578,7 @@ manufacturer_test(Config) ->
 %--- components group ---
 required_component_fields_test(Config) ->
     #{<<"components">> := Components} = ?config(sbom_json, Config),
-    lists:foreach(
-        fun(Component) ->
-            check_component_constraints(Component)
-        end,
-        Components
-    ).
+    lists:foreach(fun check_component_constraints/1, Components).
 
 all_deps_present_test(Config) ->
     AllDeps = ?config(all_deps, Config),
@@ -725,7 +739,31 @@ checkout_app_dependency_test(Config) ->
         Dependency
     ).
 
+git_root_app_source_test(Config) ->
+    SBoMJSON = ?config(sbom_json, Config),
+    #{<<"metadata">> := #{<<"component">> := Component}} = SBoMJSON,
+    #{<<"purl">> := Purl} = Component,
+    check_purl_format(Purl),
+    ?assertMatch(<<"pkg:github/exampleorg/local_app@", _/bitstring>>, Purl),
+    ?assertNotMatch(<<"pkg:hex/", _/bitstring>>, Purl).
+
 %--- Private -------------------------------------------------------------------
+
+init_git_repo(AppDir, RemoteUrl) ->
+    {ok, _} = rebar_utils:sh(["git -C ", AppDir, " init -q"], []),
+    {ok, _} = rebar_utils:sh(["git -C ", AppDir, " config user.email sbom@example.com"], []),
+    {ok, _} = rebar_utils:sh(["git -C ", AppDir, " config user.name SBOM Test"], []),
+    {ok, _} = rebar_utils:sh(["git -C ", AppDir, " config commit.gpgsign false"], []),
+    {ok, _} = rebar_utils:sh(["git -C ", AppDir, " add ."], []),
+    {ok, _} = rebar_utils:sh(["git -C ", AppDir, " commit -q -m \"Initial commit\""], []),
+    {ok, _} = rebar_utils:sh(["git -C ", AppDir, " remote add origin ", RemoteUrl], []).
+
+maybe_delete_dir(Dir) ->
+    case filelib:is_dir(Dir) of
+        true -> file:del_dir_r(Dir);
+        false -> ok
+    end.
+
 check_component_constraints(Component) ->
     check_component_cyclonedx_constraints(Component),
     check_component_ort_constraints(Component).
