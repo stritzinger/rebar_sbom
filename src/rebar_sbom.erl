@@ -2,9 +2,9 @@
 %% SPDX-FileCopyrightText: 2019 Bram Verburg
 %% SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
 
--module(rebar3_sbom).
+-module(rebar_sbom).
 
--include("rebar3_sbom.hrl").
+-include("rebar_sbom.hrl").
 
 -export([init/1]).
 
@@ -32,5 +32,5 @@
 
 -spec init(rebar_state:t()) -> {ok, rebar_state:t()}.
 init(State) ->
-    {ok, State1} = rebar3_sbom_prv:init(State),
+    {ok, State1} = rebar_sbom_prv:init(State),
     {ok, State1}.
