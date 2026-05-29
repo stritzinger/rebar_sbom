@@ -3,16 +3,16 @@
   SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
 -->
 
-# Contributing to `rebar3_sbom`
+# Contributing to `rebar_sbom`
 
 ## Welcome!
 
 We look forward to your contributions! Here are some examples how you can
 contribute:
 
-- [Report a bug](https://github.com/erlef/rebar3_sbom/issues/new?labels=bug&template=BUG.md)
-- [Propose a new feature](https://github.com/erlef/rebar3_sbom/issues/new?labels=enhancement&template=FEATURE.md)
-- [Send a pull request](https://github.com/erlef/rebar3_sbom/pulls)
+- [Report a bug](https://github.com/stritzinger/rebar_sbom/issues/new?labels=bug&template=BUG.md)
+- [Propose a new feature](https://github.com/stritzinger/rebar_sbom/issues/new?labels=enhancement&template=FEATURE.md)
+- [Send a pull request](https://github.com/stritzinger/rebar_sbom/pulls)
 
 ## We have a Code of Conduct
 
@@ -41,10 +41,10 @@ In your bug report, please provide the following:
 - tried that didn't work)
 
 <!--
-Please do not report a bug for a version of `rebar3_sbom` that is no longer
+Please do not report a bug for a version of `rebar_sbom` that is no longer
 supported (`< 1.0.0`). -->
 Please do not report a bug if you are using a version of Erlang that is not
-supported by the version of `rebar3_sbom` you are using.
+supported by the version of `rebar_sbom` you are using.
 
 Please post code and output as text
 ([using proper markup](https://guides.github.com/features/mastering-markdown/)).
@@ -71,7 +71,7 @@ We encourage you to
 
 Pull requests for new features must be based on the `main` branch.
 
-We are trying to keep backwards compatibility breaks in `rebar3_sbom` to a
+We are trying to keep backwards compatibility breaks in `rebar_sbom` to a
 minimum. Please take this into account when proposing changes.
 
 Due to time constraints, we are not always able to respond as quickly as we
@@ -105,33 +105,33 @@ $ rebar3 dialyzer
 Please understand that we will not accept a pull request when its changes
 violate this project's coding guidelines.
 
-## Using `rebar3_sbom` from a Git checkout
+## Using `rebar_sbom` from a Git checkout
 
 The following commands can be used to perform the initial checkout of
-`rebar3_sbom`:
+`rebar_sbom`:
 
 ```bash
-$ git clone git@github.com:erlef/rebar3_sbom.git
+$ git clone git@github.com:stritzinger/rebar_sbom.git
 
-$ cd rebar3_sbom
+$ cd rebar_sbom
 ```
 
-Install `rebar3_sbom`'s dependencies using [rebar3](https://rebar3.org/):
+Install `rebar_sbom`'s dependencies using [rebar3](https://rebar3.org/):
 
 ```bash
 $ rebar3 get-deps
 ```
 
-## Running `rebar3_sbom`'s test suite
+## Running `rebar_sbom`'s test suite
 
-After following the steps shown above, `rebar3_sbom`'s test suite is run like
+After following the steps shown above, `rebar_sbom`'s test suite is run like
 this:
 
 ```bash
 $ rebar3 ct
 ```
 
-## Generating `rebar3_sbom` Documentation
+## Generating `rebar_sbom` Documentation
 
 To generate the documentation for the library, run:
 
