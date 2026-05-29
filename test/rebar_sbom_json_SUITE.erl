@@ -339,12 +339,12 @@ init_per_testcase(strict_version_test, Config) ->
 init_per_testcase(git_root_app_source_test, Config) ->
     DataDir = ?config(data_dir, Config),
     PrivDir = ?config(priv_dir, Config),
-    SrcDir = rebar3_sbom_test_utils:get_app_dir(DataDir, "local_app"),
+    SrcDir = rebar_sbom_test_utils:get_app_dir(DataDir, "local_app"),
     AppDir = filename:join(PrivDir, "git_root_app"),
     ok = maybe_delete_dir(AppDir),
     {ok, _} = rebar_utils:sh(["cp -r ", SrcDir, " ", AppDir], []),
     init_git_repo(AppDir, "https://github.com/ExampleOrg/local_app.git"),
-    State = rebar3_sbom_test_utils:init_rebar_state_from_dir(
+    State = rebar_sbom_test_utils:init_rebar_state_from_dir(
         Config, AppDir, "git_root_app"
     ),
     SBoMPath = filename:join(PrivDir, "git_root_app_sbom.json"),

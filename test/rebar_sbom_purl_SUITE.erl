@@ -36,7 +36,7 @@ all() ->
 %--- Test cases ----------------------------------------------------------------
 
 hex_purl_test(_) ->
-    Purl = rebar_sbom_purl:hex("Rebar3_SBOM", "1.2.3"),
+    Purl = rebar_sbom_purl:hex("Rebar_SBOM", "1.2.3"),
     ?assertEqual(<<"pkg:hex/rebar_sbom@1.2.3">>, Purl).
 
 github_purl_test(_) ->
