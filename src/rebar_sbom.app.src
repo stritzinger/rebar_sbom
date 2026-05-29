@@ -13,5 +13,5 @@
     {modules, []},
 
     {licenses, ["BSD-3-Clause"]},
-    {links, [{"GitHub", "https://github.com/voltone/rebar_sbom"}]}
+    {links, [{"GitHub", "https://github.com/stritzinger/rebar_sbom"}]}
 ]}.
