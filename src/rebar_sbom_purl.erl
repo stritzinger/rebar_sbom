@@ -4,7 +4,7 @@
 %% SPDX-FileCopyrightText: 2024 Sebastian Strollo
 %% SPDX-FileCopyrightText: 2025 Stritzinger GmbH
 
--module(rebar3_sbom_purl).
+-module(rebar_sbom_purl).
 
 % https://github.com/package-url/purl-spec
 

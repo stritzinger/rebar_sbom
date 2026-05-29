@@ -1,5 +1,5 @@
 {application, local_app, [
-    {description, "Application with local dependencies for testing rebar3_sbom"},
+    {description, "Application with local dependencies for testing rebar_sbom"},
     {vsn, "0.1.0"},
     {registered, []},
     {mod, {local_app_app, []}},

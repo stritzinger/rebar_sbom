@@ -7,21 +7,21 @@
 # Rebar3 SBoM
 
 [![EEF Security WG project](https://img.shields.io/badge/EEF-Security-black)](https://github.com/erlef/security-wg)
-[![.github/workflows/branch_main.yml](https://github.com/erlef/rebar3_sbom/actions/workflows/branch_main.yml/badge.svg)](https://github.com/erlef/rebar3_sbom/actions/workflows/branch_main.yml)
-[![REUSE status](https://api.reuse.software/badge/github.com/erlef/rebar3_sbom)](https://api.reuse.software/info/github.com/erlef/rebar3_sbom)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/erlef/rebar3_sbom/badge)](https://scorecard.dev/viewer/?uri=github.com/erlef/rebar3_sbom)
-[![Coverage Status](https://coveralls.io/repos/github/erlef/rebar3_sbom/badge.svg?branch=main)](https://coveralls.io/github/erlef/rebar3_sbom?branch=main)
+[![.github/workflows/branch_main.yml](https://github.com/stritzinger/rebar_sbom/actions/workflows/branch_main.yml/badge.svg)](https://github.com/stritzinger/rebar_sbom/actions/workflows/branch_main.yml)
+[![REUSE status](https://api.reuse.software/badge/github.com/stritzinger/rebar_sbom)](https://api.reuse.software/info/github.com/stritzinger/rebar_sbom)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/stritzinger/rebar_sbom/badge)](https://scorecard.dev/viewer/?uri=github.com/stritzinger/rebar_sbom)
+[![Coverage Status](https://coveralls.io/repos/github/stritzinger/rebar_sbom/badge.svg?branch=main)](https://coveralls.io/github/stritzinger/rebar_sbom?branch=main)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11547/badge)](https://www.bestpractices.dev/projects/11547)
 
 Generates a Software Bill-of-Materials (SBoM) in CycloneDX format
 
 ## Use
 
-Add rebar3_sbom to your rebar config, either in a project or globally in
+Add rebar_sbom to your rebar config, either in a project or globally in
 `~/.config/rebar3/rebar.config`:
 
 ```erlang
-{plugins, [rebar3_sbom]}.
+{plugins, [rebar_sbom]}.
 ```
 
 Then run the `sbom` task on a project:
@@ -37,7 +37,7 @@ $ rebar3 sbom
 You can configure additional SBoM metadata in your `rebar.config`:
 
 ```erlang
-{rebar3_sbom, [
+{rebar_sbom, [
     {sbom_manufacturer, #{          % Optional, all fields inside are optional
         name => "Your Organization",
         url => ["https://example.com", "https://another-example.com"],
@@ -147,7 +147,7 @@ You can use either the standard CycloneDX type names or the community convention
 Development
 -----------
 
-To run the full test suite locally, you need the CycloneDX CLI (`cyclonedx-cli`) available on your `PATH`, as it is used by `rebar3_sbom_validation_SUITE` to validate generated SBOMs.
+To run the full test suite locally, you need the CycloneDX CLI (`cyclonedx-cli`) available on your `PATH`, as it is used by `rebar_sbom_validation_SUITE` to validate generated SBOMs.
 
 For example, on macOS or Linux with Homebrew:
 
