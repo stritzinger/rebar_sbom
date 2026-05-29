@@ -4,11 +4,11 @@
 %% SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
 %% SPDX-FileCopyrightText: 2024-2025 Stritzinger GmbH
 
--module(rebar3_sbom_cyclonedx).
+-module(rebar_sbom_cyclonedx).
 
 -export([bom/5, bom/6, uuid/0]).
 
--include("rebar3_sbom.hrl").
+-include("rebar_sbom.hrl").
 
 bom(FileInfo, IsStrictVersion, App, Plugin, MetadataInfo) ->
     bom(FileInfo, IsStrictVersion, App, Plugin, uuid(), MetadataInfo).
@@ -17,10 +17,10 @@ bom({FilePath, _} = FileInfo, IsStrictVersion, App, Plugin, Serial, MetadataInfo
     {AppInfo, RawComponents} = App,
     {PluginInfo, PluginDepsInfo} = Plugin,
     ValidRawComponents = lists:filter(fun(E) -> E =/= undefined end, RawComponents),
-    % Filtering out rebar3_sbom from plugin dependencies to avoid duplicates in output
+    % Filtering out rebar_sbom from plugin dependencies to avoid duplicates in output
     ValidPluginDepsInfo = lists:filter(
         fun(E) ->
-            E =/= undefined andalso proplists:get_value(name, E) =/= <<"rebar3_sbom">>
+            E =/= undefined andalso proplists:get_value(name, E) =/= <<"rebar_sbom">>
         end,
         PluginDepsInfo
     ),
@@ -49,7 +49,7 @@ bom({FilePath, _} = FileInfo, IsStrictVersion, App, Plugin, Serial, MetadataInfo
     App :: proplists:proplist(),
     Plugin :: proplists:proplist(),
     MetadataInfo :: proplists:proplist(),
-    Metadata :: rebar3_sbom:metadata().
+    Metadata :: rebar_sbom:metadata().
 metadata(App, Plugin, MetadataInfo) ->
     #metadata{
         timestamp = calendar:system_time_to_rfc3339(erlang:system_time(second)),
@@ -63,7 +63,7 @@ metadata(App, Plugin, MetadataInfo) ->
 -spec sbom_authors(Author, App) -> Authors when
     Author :: undefined | string(),
     App :: proplists:proplist(),
-    Authors :: [rebar3_sbom:individual()].
+    Authors :: [rebar_sbom:individual()].
 sbom_authors(undefined, App) ->
     case os:getenv("GITHUB_ACTOR") of
         false ->
@@ -77,7 +77,7 @@ sbom_authors(Author, _App) ->
 -spec sbom_licenses(LicensesIn, App) -> LicensesOut when
     LicensesIn :: undefined | [string()],
     App :: proplists:proplist(),
-    LicensesOut :: [rebar3_sbom:license()].
+    LicensesOut :: [rebar_sbom:license()].
 sbom_licenses(undefined, App) ->
     component_field(licenses, App);
 sbom_licenses(Licenses, _App) ->
@@ -138,7 +138,7 @@ component_field(Field, RawComponent) ->
 license(Name) when is_binary(Name) ->
     license(binary:bin_to_list(Name));
 license(Name) ->
-    case rebar3_sbom_license:spdx_id(Name) of
+    case rebar_sbom_license:spdx_id(Name) of
         undefined ->
             #license{name = Name};
         SpdxId ->
@@ -147,7 +147,7 @@ license(Name) ->
 
 -spec manufacturer(ManufacturerIn) -> ManufacturerOut when
     ManufacturerIn :: undefined | map(),
-    ManufacturerOut :: rebar3_sbom:organization() | undefined.
+    ManufacturerOut :: rebar_sbom:organization() | undefined.
 manufacturer(undefined) ->
     undefined;
 manufacturer(Manufacturer) ->
@@ -158,7 +158,7 @@ manufacturer(Manufacturer) ->
         contact = individuals(maps:get(contact, Manufacturer, undefined))
     }.
 
--spec address(undefined | map()) -> undefined | rebar3_sbom:address().
+-spec address(undefined | map()) -> undefined | rebar_sbom:address().
 address(undefined) ->
     undefined;
 address(AddressMap) ->
@@ -173,7 +173,7 @@ address(AddressMap) ->
 
 -spec individuals(IndividualsIn) -> IndividualsOut when
     IndividualsIn :: [string()],
-    IndividualsOut :: [rebar3_sbom:individual()].
+    IndividualsOut :: [rebar_sbom:individual()].
 individuals(undefined) ->
     [];
 individuals(Individuals) ->
@@ -190,7 +190,7 @@ individuals(Individuals) ->
 
 -spec authors(App) -> Authors when
     App :: proplists:proplist(),
-    Authors :: [rebar3_sbom:individual()].
+    Authors :: [rebar_sbom:individual()].
 authors(App) ->
     [#individual{name = Name} || Name <- proplists:get_value(authors, App, [])].
 
@@ -234,8 +234,8 @@ version({FilePath, Format}, IsStrictVersion, NewSBoM) ->
 
 -spec version(IsStrictVersion, {NewSBoM, OldSBoM}) -> Version when
     IsStrictVersion :: boolean(),
-    NewSBoM :: rebar3_sbom:sbom(),
-    OldSBoM :: rebar3_sbom:sbom(),
+    NewSBoM :: rebar_sbom:sbom(),
+    OldSBoM :: rebar_sbom:sbom(),
     Version :: integer().
 version(_, {_, OldSBoM}) when OldSBoM#sbom.version =:= 0 ->
     rebar_api:info(
@@ -267,26 +267,26 @@ is_sbom_equal(#sbom{components = NewComponents}, #sbom{components = OldComponent
         lists:all(fun(C) -> lists:member(C, OldComponents) end, NewComponents).
 
 decode(FilePath, "xml") ->
-    rebar3_sbom_xml:decode(FilePath);
+    rebar_sbom_xml:decode(FilePath);
 decode(FilePath, "json") ->
-    rebar3_sbom_json:decode(FilePath).
+    rebar_sbom_json:decode(FilePath).
 
--spec normalize_sbom(rebar3_sbom:sbom()) -> rebar3_sbom:sbom().
+-spec normalize_sbom(rebar_sbom:sbom()) -> rebar_sbom:sbom().
 normalize_sbom(#sbom{metadata = Metadata0, components = Components0, dependencies = Deps0} = S) ->
     Components = lists:map(fun normalize_component/1, dedup(Components0)),
     Metadata = normalize_metadata(Metadata0),
     Deps = normalize_deps(Deps0),
     S#sbom{metadata = Metadata, components = Components, dependencies = Deps}.
 
--spec normalize_metadata(rebar3_sbom:metadata()) -> rebar3_sbom:metadata().
+-spec normalize_metadata(rebar_sbom:metadata()) -> rebar_sbom:metadata().
 normalize_metadata(#metadata{authors = Authors0, licenses = Licenses0} = M) ->
     M#metadata{authors = dedup(Authors0), licenses = dedup(Licenses0)}.
 
--spec normalize_component(rebar3_sbom:component()) -> rebar3_sbom:component().
+-spec normalize_component(rebar_sbom:component()) -> rebar_sbom:component().
 normalize_component(#component{authors = Authors0, licenses = Licenses0} = C) ->
     C#component{authors = dedup(Authors0), licenses = dedup(Licenses0)}.
 
--spec normalize_deps([rebar3_sbom:dependency()]) -> [rebar3_sbom:dependency()].
+-spec normalize_deps([rebar_sbom:dependency()]) -> [rebar_sbom:dependency()].
 normalize_deps(Deps0) ->
     Deps1 = [D#dependency{dependencies = normalize_deps(D#dependency.dependencies)} || D <- Deps0],
     dedup(Deps1).

@@ -1,7 +1,7 @@
 %% SPDX-License-Identifier: BSD-3-Clause
 %% SPDX-FileCopyrightText: 2024 Bram Verburg
 
-{application, rebar3_sbom, [
+{application, rebar_sbom, [
     {description, "Rebar3 plugin to generate CycloneDX SBoM"},
     {vsn, "0.9.0-beta.1"},
     {registered, []},
@@ -13,5 +13,5 @@
     {modules, []},
 
     {licenses, ["BSD-3-Clause"]},
-    {links, [{"GitHub", "https://github.com/voltone/rebar3_sbom"}]}
+    {links, [{"GitHub", "https://github.com/stritzinger/rebar_sbom"}]}
 ]}.

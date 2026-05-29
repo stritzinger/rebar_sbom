@@ -2,11 +2,11 @@
 %% SPDX-FileCopyrightText: 2025 Erlang Ecosystem Foundation
 %% SPDX-FileCopyrightText: 2024-2025 Stritzinger GmbH
 
--module(rebar3_sbom_json).
+-module(rebar_sbom_json).
 
 -export([encode/1, decode/1]).
 
--include("rebar3_sbom.hrl").
+-include("rebar_sbom.hrl").
 
 -define(SCHEMA, <<"http://cyclonedx.org/schema/bom-1.6.schema.json">>).
 
@@ -62,11 +62,11 @@ component_to_json(C) ->
 prune_content(Component) ->
     maps:filter(fun(_, Value) -> Value =/= undefined end, Component).
 
--spec individuals_to_json([rebar3_sbom:individual()]) -> [#{name => binary()}].
+-spec individuals_to_json([rebar_sbom:individual()]) -> [#{name => binary()}].
 individuals_to_json(Individuals) ->
     [individual_to_json(I) || I <- Individuals].
 
--spec individual_to_json(rebar3_sbom:individual()) -> #{name => binary()}.
+-spec individual_to_json(rebar_sbom:individual()) -> #{name => binary()}.
 individual_to_json(Individual) ->
     prune_content(#{
         name => bin(Individual#individual.name),
@@ -74,7 +74,7 @@ individual_to_json(Individual) ->
         phone => bin(Individual#individual.phone)
     }).
 
--spec metadata_to_json(rebar3_sbom:metadata()) -> map().
+-spec metadata_to_json(rebar_sbom:metadata()) -> map().
 metadata_to_json(Metadata) ->
     prune_content(#{
         timestamp => bin(Metadata#metadata.timestamp),
@@ -85,7 +85,7 @@ metadata_to_json(Metadata) ->
         licenses => licenses_to_json(Metadata#metadata.licenses)
     }).
 
--spec manufacturer_to_json(rebar3_sbom:organization() | undefined) -> map() | undefined.
+-spec manufacturer_to_json(rebar_sbom:organization() | undefined) -> map() | undefined.
 manufacturer_to_json(undefined) ->
     undefined;
 manufacturer_to_json(Manufacturer) ->
@@ -96,7 +96,7 @@ manufacturer_to_json(Manufacturer) ->
         contact => individuals_to_json(Manufacturer#organization.contact)
     }).
 
--spec address_to_json(rebar3_sbom:address()) -> map().
+-spec address_to_json(rebar_sbom:address()) -> map().
 address_to_json(Address) ->
     prune_content(#{
         country => bin(Address#address.country),

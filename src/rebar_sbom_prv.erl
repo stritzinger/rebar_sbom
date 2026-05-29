@@ -5,11 +5,11 @@
 %% SPDX-FileCopyrightText: 2024 Paulo F. Oliveira
 %% SPDX-FileCopyrightText: 2024-2026 Stritzinger GmbH
 
--module(rebar3_sbom_prv).
+-module(rebar_sbom_prv).
 
 -export([init/1, do/1, format_error/1]).
 
--include("rebar3_sbom.hrl").
+-include("rebar_sbom.hrl").
 
 %--- Macros --------------------------------------------------------------------
 -define(CUSTOM_MAPPING, #{
@@ -64,7 +64,7 @@ do(State) ->
     PluginDeps = rebar_state:all_plugin_deps(State),
     {value, Plugin} = lists:search(
         fun(Plugin) ->
-            rebar_app_info:name(Plugin) =:= <<"rebar3_sbom">>
+            rebar_app_info:name(Plugin) =:= <<"rebar_sbom">>
         end,
         PluginDeps
     ),
@@ -76,7 +76,7 @@ do(State) ->
     AppInfo = dep_info(App),
     AppInfo2 = [{sha256, hash(AppInfo, rebar_dir:base_dir(State))} | AppInfo],
     MetadataInfo = metadata(State),
-    SBoM = rebar3_sbom_cyclonedx:bom(
+    SBoM = rebar_sbom_cyclonedx:bom(
         {FilePath, Format},
         IsStrictVersion,
         {AppInfo2, DepsInfo},
@@ -85,8 +85,8 @@ do(State) ->
     ),
     Contents =
         case Format of
-            "xml" -> rebar3_sbom_xml:encode(SBoM);
-            "json" -> rebar3_sbom_json:encode(SBoM)
+            "xml" -> rebar_sbom_xml:encode(SBoM);
+            "json" -> rebar_sbom_json:encode(SBoM)
         end,
     case write_file(FilePath, Contents, Force) of
         ok ->
@@ -103,7 +103,7 @@ format_error(Message) ->
 -spec metadata(rebar_state:t()) -> proplists:proplist().
 metadata(State) ->
     {Args, _} = rebar_state:command_parsed_args(State),
-    PluginOpts = rebar_state:get(State, rebar3_sbom, []),
+    PluginOpts = rebar_state:get(State, rebar_sbom, []),
     Manufacturer = proplists:get_value(sbom_manufacturer, PluginOpts, undefined),
     Licenses = proplists:get_value(sbom_licenses, PluginOpts, undefined),
     [
@@ -260,9 +260,9 @@ dep_info(_Name, _Version, {pkg, Name, Version, Sha256}, Common) ->
     [
         {name, Name},
         {version, Version},
-        {purl, rebar3_sbom_purl:hex(Name, Version)},
+        {purl, rebar_sbom_purl:hex(Name, Version)},
         {sha256, string:lowercase(Sha256)},
-        {cpe, rebar3_sbom_cpe:cpe(Name, list_to_binary(Version), GitHubLink)}
+        {cpe, rebar_sbom_cpe:cpe(Name, list_to_binary(Version), GitHubLink)}
         | Common
     ];
 dep_info(_Name, _Version, {pkg, Name, Version, _InnerChecksum, OuterChecksum, _RepoConf}, Common) ->
@@ -270,25 +270,25 @@ dep_info(_Name, _Version, {pkg, Name, Version, _InnerChecksum, OuterChecksum, _R
     [
         {name, Name},
         {version, Version},
-        {purl, rebar3_sbom_purl:hex(Name, Version)},
+        {purl, rebar_sbom_purl:hex(Name, Version)},
         {sha256, string:lowercase(OuterChecksum)},
-        {cpe, rebar3_sbom_cpe:cpe(Name, Version, GitHubLink)}
+        {cpe, rebar_sbom_cpe:cpe(Name, Version, GitHubLink)}
         | Common
     ];
 dep_info(Name, _DepVersion, {git, Git, GitRef}, Common) ->
     {Version, Purl, CPE} =
         case GitRef of
             {tag, Tag} ->
-                GeneratedCPE = rebar3_sbom_cpe:cpe(Name, list_to_binary(Tag), list_to_binary(Git)),
-                {Tag, rebar3_sbom_purl:git(Name, Git, Tag), GeneratedCPE};
+                GeneratedCPE = rebar_sbom_cpe:cpe(Name, list_to_binary(Tag), list_to_binary(Git)),
+                {Tag, rebar_sbom_purl:git(Name, Git, Tag), GeneratedCPE};
             {branch, Branch} ->
-                GeneratedCPE = rebar3_sbom_cpe:cpe(
+                GeneratedCPE = rebar_sbom_cpe:cpe(
                     Name, list_to_binary(Branch), list_to_binary(Git)
                 ),
-                {Branch, rebar3_sbom_purl:git(Name, Git, Branch), GeneratedCPE};
+                {Branch, rebar_sbom_purl:git(Name, Git, Branch), GeneratedCPE};
             {ref, Ref} ->
-                GeneratedCPE = rebar3_sbom_cpe:cpe(Name, list_to_binary(Ref), list_to_binary(Git)),
-                {Ref, rebar3_sbom_purl:git(Name, Git, Ref), GeneratedCPE}
+                GeneratedCPE = rebar_sbom_cpe:cpe(Name, list_to_binary(Ref), list_to_binary(Git)),
+                {Ref, rebar_sbom_purl:git(Name, Git, Ref), GeneratedCPE}
         end,
     [
         {name, Name},
@@ -304,18 +304,18 @@ dep_info(Name, Version, checkout, Common) ->
     [
         {name, Name},
         {version, Version},
-        {purl, rebar3_sbom_purl:local_otp_app(Name, Version)},
-        {cpe, rebar3_sbom_cpe:cpe(Name, list_to_binary(Version), GitHubLink)}
+        {purl, rebar_sbom_purl:local_otp_app(Name, Version)},
+        {cpe, rebar_sbom_cpe:cpe(Name, list_to_binary(Version), GitHubLink)}
         | Common
     ];
 dep_info(Name, Version, root_app, Common) ->
     GitHubLink = proplists:get_value(github_link, Common, undefined),
-    Purl = rebar3_sbom_purl:hex(Name, Version),
+    Purl = rebar_sbom_purl:hex(Name, Version),
     [
         {name, Name},
         {version, Version},
         {purl, Purl},
-        {cpe, rebar3_sbom_cpe:cpe(Name, list_to_binary(Version), GitHubLink)}
+        {cpe, rebar_sbom_cpe:cpe(Name, list_to_binary(Version), GitHubLink)}
         | Common
     ].
 

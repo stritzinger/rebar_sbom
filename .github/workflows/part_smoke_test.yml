@@ -36,7 +36,7 @@ jobs:
               {idna, "6.1.1"}
             ]}.
             {project_plugins, [
-              {rebar3_sbom, {git, "$REPO", {ref, "$SHA"}}}
+              {rebar_sbom, {git, "$REPO", {ref, "$SHA"}}}
             ]}.
           EOF
 
@@ -95,11 +95,11 @@ jobs:
 
   #     - name: "Make EScript Executable"
   #       run: |
-  #         chmod +x ./escript_artifacts/rebar3_sbom
+  #         chmod +x ./escript_artifacts/rebar_sbom
 
   #     - name: "Test All Combinations"
   #       uses: ./.github/actions/validate-cyclonedx-bom
   #       with:
-  #         command: "./escript_artifacts/rebar3_sbom cyclonedx"
+  #         command: "./escript_artifacts/rebar_sbom cyclonedx"
   #         command-args: "."
   #         test-name: "EScript"
