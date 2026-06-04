@@ -33,6 +33,7 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
+          persist-credentials: false
           submodules: true
 
       - uses: ./.github/actions/setup-runtime-env
@@ -71,6 +72,7 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
+          persist-credentials: false
           submodules: true
 
       - uses: ./.github/actions/setup-runtime-env
@@ -80,13 +82,14 @@ jobs:
 
       - name: "Install Test OS Dependencies"
         run: |
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          echo "PATH=$PATH" >> "$GITHUB_ENV"
-          brew tap cyclonedx/cyclonedx
-          brew install cyclonedx/cyclonedx/cyclonedx-cli
+          BREW_BIN="/home/linuxbrew/.linuxbrew/bin"
+          "$BREW_BIN/brew" tap cyclonedx/cyclonedx
+          "$BREW_BIN/brew" install cyclonedx/cyclonedx/cyclonedx-cli
 
       - name: "Run CT Suites"
-        run: rebar3 ct --cover
+        run: |
+          export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+          rebar3 ct --cover
 
       - name: "Create HTML Coverage Report"
         run: rebar3 cover
@@ -136,6 +139,7 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
+          persist-credentials: false
           submodules: true
 
       - uses: ./.github/actions/setup-runtime-env
@@ -154,6 +158,7 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
+          persist-credentials: false
           submodules: true
 
       - uses: ./.github/actions/setup-runtime-env
